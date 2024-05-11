@@ -9,7 +9,7 @@ This repo is the official implementation of QT-Font: High-efficiency Font Synthe
 ## Data
 We provide an example of the dataset in [PKU Disk](https://disk.pku.edu.cn/link/AA0B4605C580324595987B95091EDA5CBD). You can unzip it to the "data" directory.
 
-Data organization referenced VQ-Font.
+Data organization referenced [VQ-Font](https://github.com/awei669/VQ-Font).
 
 ## Train
 Run python main.py --config=#path_of_config
