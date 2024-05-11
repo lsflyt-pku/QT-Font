@@ -1,0 +1,118 @@
+# --------------------------------------------------------
+# Dual Octree Graph Networks
+# Copyright (c) 2022 Microsoft
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Peng-Shuai Wang
+# --------------------------------------------------------
+
+SOLVER:
+  gpu: 0,1,2,3,4,5,6,8
+  run: train
+  # run: train for training
+  # run: discrete for generation
+  dist_url: tcp://localhost:10015
+
+  logdir: logs/chinesefont/128_QTFont
+  max_epoch: 20
+  test_every_epoch: 1
+  log_per_iter: 50
+  ckpt_num: 50
+  # the path of pretraining model for finetuning
+  # e.g.
+  # ckpt: logs/chinesefont/128_QTFont/chinesepoints/00020.model.pth
+
+  # optimizer
+  type: adamw 
+  weight_decay: 0.00  # default value of adamw
+  lr: 0.0001          # default value of adamw
+  accum: 32
+ 
+  # learning rate
+  # for training
+  lr_type: cos
+  step_size: (160, 240)
+
+  # for finetuning
+  #  lr_type: constant
+  #  step_size: (160, 240)
+
+DATA:
+  train:
+    name: chinesefont_asymmetric
+
+    # octree building
+    depth: 7 # 7: 128 8: 256 9:512
+    offset: 0.0
+    full_depth: 4
+    node_dis: True
+    split_label: True
+    canny: True
+    ref_num: 3
+    c_ref_num: 1
+
+    # no data augmentation
+    distort: False
+
+    # data loading
+    location: data/VQ-Font128
+    filelist: data/VQ-Font128/sfsc.txt
+    batch_size: 4 # accum=32 batch_size=4 gpus=8  =>  total_batch_size=1024
+    shuffle: True
+    num_workers: 4
+
+    beta_start: 0.02
+    beta_end: 1.0
+    num_train_timesteps: 1000
+    beta_schedule: 'cos'
+
+  test:
+    name: chinesefont_asymmetric
+
+    # octree building
+    depth: 7 # 7: 128 8: 256 9:512
+    offset: 0.0
+    full_depth: 4
+    node_dis: True
+    split_label: True
+    canny: True
+    ref_num: 3
+    c_ref_num: 1
+
+    # no data augmentation
+    distort: False
+
+    # data loading
+    location: data/VQ-Font128
+    filelist: data/VQ-Font128/sfuc.txt
+    batch_size: 4
+    shuffle: False
+    num_workers: 4
+
+    beta_start: 0.02
+    beta_end: 1.0
+    num_train_timesteps: 1000
+    beta_schedule: 'cos'
+
+MODEL:
+  name: graph_diffusion
+
+  channel: 6
+  depth: 7
+  nout: 3
+  depth_out: 7
+  full_depth: 4
+  depth_stop: 4
+  bottleneck: 4
+  resblock_type: basic
+  code_channel: 32
+  resblk_num: 2
+
+  embed_dim: 3
+  n_embed: 8192
+
+  find_unused_parameters: True
+  cond: char_font_align
+
+LOSS:
+  name: chinesefont_axis
+  loss_type: axis_loss
